@@ -3,36 +3,42 @@ package dev.mocad.webschool.contoller;
 
 import dev.mocad.webschool.model.Contact;
 import dev.mocad.webschool.service.ContactService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-
-
+@Slf4j
 @Controller
 public class ContactController {
 
   @Autowired
   private ContactService contactService;
 
-  private static final Logger log = (Logger) LoggerFactory.getLogger(ContactController.class);
+
 
     @RequestMapping("/contact")
-    public String displayContactPage() {
-        return "contact.html";
+    public String displayContactPage(Model model) {
+      model.addAttribute("contact", new Contact());
+      return "contact.html";
     }
 
     @PostMapping("/saveMsg")
-    public ModelAndView saveMessage(Contact contact) {
-        contactService.saveMessage(contact);
-        return new ModelAndView("redirect:/contact");
+    public String saveMessage(@Valid @ModelAttribute Contact contact, Errors errors) {
+      if (errors.hasErrors()) {
+        log.error("Contact form validation failed due to: " + errors.toString());
+        return "contact.html";
+      }
+      contactService.saveMessage(contact);
+      return "redirect:/contact";
 
     }
 
